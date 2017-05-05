@@ -263,9 +263,14 @@ static struct task_struct* pfp_schedule(struct task_struct * prev)
 			
 			if(dp_t && (dp_t == trq))
 			{
-									
+				//Need to preempt
+				/* Request a sys_exit_np() call if we would like to preempt but cannot.
+				 * Multiple calls to request_exit_np() don't hurt.
+				 */
+				request_exit_np(pfp->scheduled);					
 				dp_BootPriority(dp_t, pfp);	
 				if (fp_higher_prio(fp_prio_peek(&pfp->ready_queue), pfp->scheduled)) {
+					resched = 1;
 					preempt(pfp);
 				}
 	
@@ -282,6 +287,7 @@ static struct task_struct* pfp_schedule(struct task_struct * prev)
 				dp_BootPriority(dp_t, pfp);
 
 				if (fp_higher_prio(fp_prio_peek(&pfp->ready_queue), pfp->scheduled)) {
+					resched = 1;
 					preempt(pfp);
 				}
 				//TRACE("DP to reschedule PID RELEASED: PID: %d, Prio: %d\n",(dp_t)->pid, tsk_rt(dp_t)->task_params.priority);
